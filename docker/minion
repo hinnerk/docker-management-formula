@@ -1,0 +1,21 @@
+master: salt
+
+grains:
+  roles:
+    - docker
+  deployment: my_host
+
+
+auth_tries: 10
+auth_safemode: False
+ping_interval: 90
+restart_on_error: True
+pillar_opts: False
+
+log_file: /logs/master
+log_level_logfile: info
+# logs sent to console:
+log_level: quiet
+
+# TODO: YOU SHOULD REALLY SET THIS!
+# master_finger: '00:00:00:...:00'

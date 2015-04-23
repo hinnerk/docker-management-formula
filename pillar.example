@@ -1,0 +1,131 @@
+# docker management formula configuration
+
+{% set registry       = 'hinnerk'   %}
+{% set tag_latest     = 'latest' %}
+{% set tag_previous   = 'previous' %}
+{% set tag_test   = 'testing' %}
+{% set nocache   = False %}
+
+docker:
+
+  ubuntu:
+    registry: {{ registry }}
+    tag_latest: {{ tag_latest }}
+    tag_previous: {{ tag_previous }}
+    tag_test: {{ tag_test }}
+    build: True
+    nocache: {{ nocache }}
+    rm: True
+    quiet: False
+
+  java-base:
+    registry: {{ registry }}
+    tag_latest: {{ tag_latest }}
+    tag_previous: {{ tag_previous }}
+    tag_test: {{ tag_test }}
+    build: True
+    nocache:  {{ nocache }}
+    rm: True
+    quiet: False
+    build_requirements:
+      - ubuntu
+
+  salt-master:
+    registry: {{ registry }}
+    tag_latest: {{ tag_latest }}
+    tag_previous: {{ tag_previous }}
+    tag_test: {{ tag_test }}
+    run: False
+    build: False
+    keep: True
+    nocache:  {{ nocache }}
+    rm: True
+    quiet: False
+    build_requirements:
+      - ubuntu
+
+  salt-minion:
+    registry: {{ registry }}
+    tag_latest: {{ tag_latest }}
+    tag_previous: {{ tag_previous }}
+    tag_test: {{ tag_test }}
+    run: False
+    build: False
+    keep: True
+    nocache:  {{ nocache }}
+    rm: True
+    quiet: False
+    build_requirements:
+      - ubuntu
+    # files are available in the docker build environment
+    files:
+      minion.pub:
+        user: root
+        group: root
+        mode: 644
+        contents: |
+          -----BEGIN PUBLIC KEY-----
+          ....
+          -----END PUBLIC KEY-----
+      minion.pem:
+        user: root
+        group: root
+        mode: 640
+        contents: |
+          -----BEGIN RSA PRIVATE KEY-----
+          ...
+          -----END RSA PRIVATE KEY-----
+
+  elasticsearch:
+    registry: {{ registry }}
+    tag_latest: {{ tag_latest }}
+    tag_previous: {{ tag_previous }}
+    tag_test: {{ tag_test }}
+    run: True
+    build: True
+    template: jinja
+    nocache:  {{ nocache }}
+    rm: True
+    quiet: False
+    build_requirements:
+      - java-base
+    volumes:
+      /some/data/path: /data
+      /some/log/path: /logs
+
+  logstash:
+    registry: {{ registry }}
+    tag_latest: {{ tag_latest }}
+    tag_previous: {{ tag_previous }}
+    tag_test: {{ tag_test }}
+    run: True
+    build: False
+    nocache:  {{ nocache }}
+    rm: True
+    quiet: False
+    build_requirements:
+      - java-base
+    test_cmd: /opt/logstash/bin/logstash agent --config /etc/logstash.conf --log=/dev/null --configtest
+    run_requirements:
+      - elasticsearch
+    links:
+      elasticsearch: elasticsearch
+    volumes:
+      /some/logs/path: /logs
+    port_bindings:
+      # SYSLOG
+      "514/udp":
+        HostIp: "10.48.156.213"
+        HostPort: "514"
+      "514/tcp":
+        HostIp: "10.48.156.213"
+        HostPort: "514"
+    files:
+      secret_key.pem:
+        user: root
+        group: root
+        mode: 640
+        contents: |
+          -----BEGIN RSA PRIVATE KEY-----
+          ...
+          -----END RSA PRIVATE KEY-----
